@@ -31,3 +31,6 @@ C:\Projetos\PROJETO_CLIMA_API\obj\Debug\net6.0\PROJETO_CLIMA_API.pdb
 C:\Projetos\PROJETO_CLIMA_API\obj\Debug\net6.0\PROJETO_CLIMA_API.genruntimeconfig.cache
 C:\Projetos\PROJETO_CLIMA_API\obj\Debug\net6.0\ref\PROJETO_CLIMA_API.dll
 C:\Projetos\PROJETO_CLIMA_API\bin\Debug\net6.0\Newtonsoft.Json.dll
+C:\Projetos\PROJETO_CLIMA_API\bin\Debug\net6.0\client-app\package-lock.json
+C:\Projetos\PROJETO_CLIMA_API\bin\Debug\net6.0\client-app\package.json
+C:\Projetos\PROJETO_CLIMA_API\bin\Debug\net6.0\client-app\public\manifest.json

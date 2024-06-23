@@ -16,6 +16,8 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static System.Net.Mime.MediaTypeNames;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace PROJETO_CLIMA_API.Controllers
 {
@@ -119,27 +121,96 @@ namespace PROJETO_CLIMA_API.Controllers
         }
 
 
-
         [HttpGet("Tempo_Na_Cidade/{Id_Cidade}")]
-
-        public async Task Clima_Atual(string Id_Cidade)
+        public async Task<IActionResult> Clima_Atual(string Id_Cidade)
         {
             ClimaTempo Clima = new ClimaTempo();
             xToken = Clima.iTOKEN;
 
-            HttpClient client = new HttpClient();
-            HttpResponseMessage response = await client.GetAsync("http://apiadvisor.climatempo.com.br/api/v1/weather/locale/" + Id_Cidade + "/current?token=" + xToken);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(responseBody);
-                
-            dynamic DeserializeJson = JsonConvert.DeserializeObject(responseBody);
+            try
+            {
+                HttpClient client = new HttpClient();
+                HttpResponseMessage response = await client.GetAsync("http://apiadvisor.climatempo.com.br/api/v1/weather/locale/" + Id_Cidade + "/current?token=" + xToken);
 
-            Console.WriteLine($"{DeserializeJson}");
+                // Verifique se o código de status é 200
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonString = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(jsonString);
+                    Item item = JsonConvert.DeserializeObject<Item>(jsonString);
 
-
-
+                    return Ok(item);
+                }
+                else
+                {
+                    // Log detalhado do erro
+                    string errorMessage = await response.Content.ReadAsStringAsync();
+                    return StatusCode((int)response.StatusCode, errorMessage);
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                // Log detalhado do erro
+                return StatusCode(500, $"Erro ao chamar a API externa: {e.Message}");
+            }
         }
+
+
+
+
+
+
+
+        [HttpGet("Tempo15D/{Id_Cidade}")]
+        public async Task<IActionResult> Clima15D(string Id_Cidade)
+        {
+            ClimaTempo Clima = new ClimaTempo();
+            xToken = Clima.iTOKEN;
+
+            try
+            {
+                HttpClient client = new HttpClient();
+
+                HttpResponseMessage response = await client.GetAsync("http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/" + Id_Cidade + "/days/15?token=" + xToken);
+
+
+
+                // Verifique se o código de status é 200
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonString = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(jsonString);
+                    // Parse the JSON response
+                    var jsonResponse = JObject.Parse(jsonString);
+                    var data = jsonResponse["data"] as JArray;
+
+                    var forecasts = data.Select(f => new ClimaItem
+                    {
+                        Date = (string)f["date"],
+                        Temperature = new Temperature
+                        {
+                            Min = (double)f["temperature"]["min"],
+                            Max = (double)f["temperature"]["max"]
+                        },
+                        Description = (string)f["text_icon"]["text"]["pt"] // Extraindo a descrição em "pt"
+                    }).ToList();
+
+                    return Ok(forecasts);
+                }
+                else
+                {
+                    // Log detalhado do erro
+                    string errorMessage = await response.Content.ReadAsStringAsync();
+                    return StatusCode((int)response.StatusCode, errorMessage);
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                // Log detalhado do erro
+                return StatusCode(500, $"Erro ao chamar a API externa: {e.Message}");
+            }
+        }
+
 
 
 
